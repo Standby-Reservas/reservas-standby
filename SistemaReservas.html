@@ -75,8 +75,8 @@
         <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
     <div class="abas">
-        <button class="aba ativa" onclick="mostrarAba('reservas')">📅 Reservas</button>
-        <button class="aba" onclick="mostrarAba('vendedores')">👤 Vendedores</button>
+        <button class="aba ativa" onclick="mostrarAbaAdmin('reservas')">📅 Reservas</button>
+        <button class="aba" onclick="mostrarAbaAdmin('vendedores')">👤 Vendedores</button>
     </div>
     <div id="abaReservas">
         <div class="cartao">
@@ -154,7 +154,7 @@
     const nomesDias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-    // Funções de armazenamento compartilhado
+    // Armazenamento compartilhado
     function obterReservas() {
         return JSON.parse(localStorage.getItem('reservasCompartilhadas') || '[]');
     }
@@ -215,7 +215,7 @@
         document.getElementById('mensagemErro').style.display = 'none';
     }
 
-    function mostrarAba(nome) {
+    function mostrarAbaAdmin(nome) {
         document.querySelectorAll('#telaAdmin .aba').forEach(a => a.classList.remove('ativa'));
         event.target.classList.add('ativa');
         document.getElementById('abaReservas').style.display = 'none';
@@ -265,16 +265,18 @@
         }
         lista.innerHTML = reservas
             .sort((a, b) => new Date(a.data) - new Date(b.data))
-            .map((r, i) => `
+            .map((r) => {
+                const indiceReal = obterReservas().indexOf(r);
+                return `
                 <div class="item">
                     <div>
                         <div class="data">${new Date(r.data+'T00:00:00').toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'})}</div>
                         <div><strong>${r.nome}</strong> — ${r.pessoas} pessoas</div>
                         <div style="font-size:13px; color:#666;">📞 ${r.telefone}</div>
                     </div>
-                    <button class="btn-perigo" onclick="cancelarReservaPorVendedor(${obterReservas().indexOf(r)})">Cancelar</button>
+                    <button class="btn-perigo" onclick="cancelarReserva(${indiceReal})">Cancelar</button>
                 </div>
-            `).join('');
+            `}).join('');
     }
 
     function cancelarReserva(indice) {
@@ -283,14 +285,6 @@
         reservas.splice(indice, 1);
         salvarReservas(reservas);
         carregarListaReservas();
-        desenharCalendario();
-    }
-
-    function cancelarReservaPorVendedor(indiceReal) {
-        if (!confirm('Tem certeza? A data será liberada.')) return;
-        const reservas = obterReservas();
-        reservas.splice(indiceReal, 1);
-        salvarReservas(reservas);
         carregarMinhasReservas();
         desenharCalendario();
     }
@@ -307,7 +301,7 @@
         
         const vendedores = obterVendedores();
         if (vendedores.some(v => v.usuario === login)) {
-            alert('Esse usuário já existe!');
+            alert('Esse nome de usuário já existe!');
             return;
         }
         
@@ -415,10 +409,9 @@
             return;
         }
         
-        // Verificação dupla para impedir reservas no mesmo dia
         const reservas = obterReservas();
         if (reservas.some(r => r.data === dataEscolhida)) {
-            alert('⚠️ Esta data já foi reservada por outra pessoa! Atualize a página e tente outra.');
+            alert('⚠️ Esta data já foi reservada! Atualize e tente outra.');
             fecharModal();
             desenharCalendario();
             return;
@@ -426,9 +419,9 @@
         
         reservas.push({
             data: dataEscolhida,
-            nome: nome,
-            telefone: telefone,
-            pessoas: pessoas,
+            nome,
+            telefone,
+            pessoas,
             vendedorId: usuarioLogado.id,
             vendedorNome: usuarioLogado.nome
         });
@@ -438,6 +431,7 @@
         fecharModal();
         desenharCalendario();
         if (usuarioLogado.tipo === 'admin') carregarListaReservas();
+        else carregarMinhasReservas();
     }
 </script>
 
