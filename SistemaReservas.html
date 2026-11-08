@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Reservas Standby</title>
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -13,11 +12,9 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body { background: #f0f4f8; padding: 20px; max-width: 1200px; margin: 0 auto; }
         
-        /* Logo */
         .logo-container { text-align: center; margin-bottom: 25px; }
         .logo-container img { max-width: 200px; height: auto; }
         
-        /* Tela de Login */
         .tela-login { max-width: 420px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         .tela-login h1 { text-align: center; color: #2d3748; margin-bottom: 10px; font-size: 1.5rem; }
         .tela-login p.subtitulo { text-align: center; color: #718096; margin-bottom: 25px; }
@@ -30,7 +27,6 @@
         .btn-excluir:hover { background: #c53030; }
         .erro { color: #e53e3e; margin-top: 10px; display: none; text-align: center; }
         
-        /* Telas Internas */
         .conteudo { display: none; }
         .barra-superior { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; gap: 10px; }
         .usuario-info { color: #4a5568; font-size: 0.95rem; }
@@ -54,7 +50,6 @@
 </head>
 <body>
 
-    <!-- Tela de Login -->
     <div class="tela-login" id="telaLogin">
         <div class="logo-container">
             <img src="standby_logo_perfil_menos_1mb.jpg" alt="Standby - Experiências no Mar">
@@ -67,7 +62,6 @@
         <p class="erro" id="erroLogin">E-mail ou senha incorretos!</p>
     </div>
 
-    <!-- Conteúdo Principal -->
     <div class="conteudo" id="conteudo">
         <div class="logo-container">
             <img src="standby_logo_perfil_menos_1mb.jpg" alt="Standby - Experiências no Mar">
@@ -83,14 +77,12 @@
             <button class="btn-sair" onclick="sair()">Sair</button>
         </div>
 
-        <!-- Abas -->
         <div class="abas">
             <div class="aba ativa" onclick="mostrarAba('cadastro')">Nova Reserva</div>
             <div class="aba" id="abaMinhas" onclick="mostrarAba('minhas')">Minhas Reservas</div>
             <div class="aba" id="abaTodas" style="display:none;" onclick="mostrarAba('todas')">Todas as Reservas</div>
         </div>
 
-        <!-- Aba: Cadastro -->
         <div id="painel-cadastro">
             <div class="card">
                 <h2>Fazer Nova Reserva</h2>
@@ -103,7 +95,6 @@
             </div>
         </div>
 
-        <!-- Aba: Minhas Reservas -->
         <div id="painel-minhas" style="display:none;">
             <div class="card">
                 <h2>Minhas Reservas</h2>
@@ -111,7 +102,6 @@
             </div>
         </div>
 
-        <!-- Aba: Todas as Reservas (só Admin) -->
         <div id="painel-todas" style="display:none;">
             <div class="card">
                 <h2>Todas as Reservas do Sistema</h2>
@@ -121,7 +111,6 @@
     </div>
 
 <script>
-// ===== CONFIGURAÇÃO DO FIREBASE =====
 const firebaseConfig = {
   apiKey: "AIzaSyDHsOIuNg7pEtTg_-bpzJ0QK8foSZseP04",
   authDomain: "reservas-standby.firebaseapp.com",
@@ -132,20 +121,15 @@ const firebaseConfig = {
   appId: "1:874813022024:web:6219130574f0dd26fe5d7d"
 };
 
-// Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Estado do usuário
 let usuarioAtual = null;
 let ehAdmin = false;
 
-// ===== DEFINA AQUI SEU E-MAIL DE ADMINISTRADORA =====
-// TROQUE pelo SEU e-mail que você cadastrou no Firebase!
-const emailAdmin = "bredarodolfo7@gmail.com";
+const emailAdmin = "standby.reservas@gmail.com";
 
-// ===== VERIFICAR LOGIN =====
 auth.onAuthStateChanged((usuario) => {
     if (usuario) {
         usuarioAtual = usuario;
@@ -168,7 +152,6 @@ auth.onAuthStateChanged((usuario) => {
     }
 });
 
-// ===== FAZER LOGIN =====
 function fazerLogin() {
     const email = document.getElementById('emailLogin').value.trim();
     const senha = document.getElementById('senhaLogin').value;
@@ -179,18 +162,16 @@ function fazerLogin() {
         document.getElementById('emailLogin').value = '';
         document.getElementById('senhaLogin').value = '';
     })
-    .catch((erro) => {
+    .catch(() => {
         document.getElementById('erroLogin').style.display = 'block';
     });
 }
 
-// ===== SAIR =====
 function sair() {
     auth.signOut();
     mostrarAba('cadastro');
 }
 
-// ===== TROCAR DE ABA =====
 function mostrarAba(nomeAba) {
     document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
     document.getElementById('painel-cadastro').style.display = 'none';
@@ -209,7 +190,6 @@ function mostrarAba(nomeAba) {
     }
 }
 
-// ===== CADASTRAR RESERVA =====
 function cadastrarReserva() {
     const nome = document.getElementById('nomeReserva').value.trim();
     const pessoa = document.getElementById('pessoaReserva').value.trim();
@@ -243,11 +223,10 @@ function cadastrarReserva() {
         document.getElementById('horaReserva').value = '';
     })
     .catch(erro => {
-        alert('Erro ao cadastrar: ' + erro.message);
+        alert('Erro: ' + erro.message);
     });
 }
 
-// ===== CARREGAR MINHAS RESERVAS =====
 function carregarMinhasReservas() {
     db.ref('reservas').on('value', (snapshot) => {
         const lista = document.getElementById('listaMinhas');
@@ -282,7 +261,6 @@ function carregarMinhasReservas() {
     });
 }
 
-// ===== CARREGAR TODAS AS RESERVAS (ADMIN) =====
 function carregarTodasReservas() {
     db.ref('reservas').on('value', (snapshot) => {
         const lista = document.getElementById('listaTodas');
@@ -312,14 +290,12 @@ function carregarTodasReservas() {
     });
 }
 
-// ===== EXCLUIR RESERVA =====
 function excluirReserva(id) {
-    if (confirm('Tem certeza que deseja excluir esta reserva?')) {
+    if (confirm('Tem certeza que deseja excluir?')) {
         db.ref('reservas/' + id).remove();
     }
 }
 
-// ===== FORMATAR DATA =====
 function formatarData(dataISO) {
     const [ano, mes, dia] = dataISO.split('-');
     return `${dia}/${mes}/${ano}`;
