@@ -3,50 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Reservas - Standby</title>
+    <title>Sistema de Reservas Standby</title>
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body { background: #f0f4f8; padding: 20px; max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; color: #2d3748; margin-bottom: 30px; }
-        .form-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        h2 { color: #2b6cb0; margin-bottom: 20px; font-size: 1.3rem; }
-        input, button, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+        
+        /* Logo */
+        .logo-container { text-align: center; margin-bottom: 25px; }
+        .logo-container img { max-width: 200px; height: auto; }
+        
+        /* Tela de Login */
+        .tela-login { max-width: 420px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .tela-login h1 { text-align: center; color: #2d3748; margin-bottom: 10px; font-size: 1.5rem; }
+        .tela-login p.subtitulo { text-align: center; color: #718096; margin-bottom: 25px; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
         button { background: #3182ce; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
         button:hover { background: #2b6cb0; }
-        .btn-excluir { background: #e53e3e; }
+        .btn-sair { background: #718096; margin-bottom: 20px; }
+        .btn-sair:hover { background: #4a5568; }
+        .btn-excluir { background: #e53e3e; padding: 8px 12px; width: auto; font-size: 0.9rem; }
         .btn-excluir:hover { background: #c53030; }
+        .erro { color: #e53e3e; margin-top: 10px; display: none; text-align: center; }
+        
+        /* Telas Internas */
+        .conteudo { display: none; }
+        .barra-superior { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; gap: 10px; }
+        .usuario-info { color: #4a5568; font-size: 0.95rem; }
+        .abas { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .aba { padding: 10px 20px; background: #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .aba.ativa { background: #3182ce; color: white; }
+        .aba:hover { background: #cbd5e0; }
+        .aba.ativa:hover { background: #2b6cb0; }
+        
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .card h2 { color: #2b6cb0; margin-bottom: 20px; font-size: 1.25rem; }
         .reserva-item { border-bottom: 1px solid #e2e8f0; padding: 15px 0; }
         .reserva-item:last-child { border-bottom: none; }
         .reserva-nome { font-weight: bold; color: #2d3748; font-size: 1.1rem; }
-        .reserva-dados { color: #4a5568; margin: 5px 0; }
+        .reserva-dados { color: #4a5568; margin: 4px 0; font-size: 0.95rem; }
+        .reserva-vendedor { font-size: 0.85rem; color: #718096; margin-top: 5px; }
+        .admin-tag { display: inline-block; background: #f6e05e; color: #744210; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-left: 8px; }
         .sucesso { color: #2f855a; margin-top: 10px; display: none; }
-        .atualizado { color: #718096; font-size: 0.85rem; margin-top: 5px; }
+        .vazio { text-align: center; color: #718096; padding: 30px; }
     </style>
 </head>
 <body>
 
-    <h1>📅 Sistema de Reservas Standby</h1>
-
-    <!-- Formulário de Reserva -->
-    <div class="form-card">
-        <h2>Fazer Nova Reserva</h2>
-        <input type="text" id="nome" placeholder="Seu nome completo" required>
-        <input type="text" id="pessoa" placeholder="Nome da pessoa responsável" required>
-        <input type="date" id="data" required>
-        <input type="time" id="hora" required>
-        <button onclick="cadastrarReserva()">✅ Confirmar Reserva</button>
-        <p class="sucesso" id="mensagemSucesso">Reserva realizada com sucesso! ✅</p>
+    <!-- Tela de Login -->
+    <div class="tela-login" id="telaLogin">
+        <div class="logo-container">
+            <img src="standby_logo_perfil_menos_1mb.jpg" alt="Standby - Experiências no Mar">
+        </div>
+        <h1>Sistema de Reservas</h1>
+        <p class="subtitulo">Experiências no Mar</p>
+        <input type="email" id="emailLogin" placeholder="Seu e-mail">
+        <input type="password" id="senhaLogin" placeholder="Sua senha">
+        <button onclick="fazerLogin()">Entrar</button>
+        <p class="erro" id="erroLogin">E-mail ou senha incorretos!</p>
     </div>
 
-    <!-- Lista de Reservas -->
-    <div class="form-card">
-        <h2>Reservas Confirmadas</h2>
-        <p class="atualizado" id="ultimaAtualizacao"></p>
-        <div id="listaReservas"></div>
+    <!-- Conteúdo Principal -->
+    <div class="conteudo" id="conteudo">
+        <div class="logo-container">
+            <img src="standby_logo_perfil_menos_1mb.jpg" alt="Standby - Experiências no Mar">
+        </div>
+        
+        <div class="barra-superior">
+            <div class="usuario-info">
+                <strong id="nomeUsuario"></strong>
+                <span id="tagAdmin" class="admin-tag" style="display:none;">ADMINISTRADORA</span>
+                <br>
+                <small id="emailUsuario"></small>
+            </div>
+            <button class="btn-sair" onclick="sair()">Sair</button>
+        </div>
+
+        <!-- Abas -->
+        <div class="abas">
+            <div class="aba ativa" onclick="mostrarAba('cadastro')">Nova Reserva</div>
+            <div class="aba" id="abaMinhas" onclick="mostrarAba('minhas')">Minhas Reservas</div>
+            <div class="aba" id="abaTodas" style="display:none;" onclick="mostrarAba('todas')">Todas as Reservas</div>
+        </div>
+
+        <!-- Aba: Cadastro -->
+        <div id="painel-cadastro">
+            <div class="card">
+                <h2>Fazer Nova Reserva</h2>
+                <input type="text" id="nomeReserva" placeholder="Nome do cliente / passeio" required>
+                <input type="text" id="pessoaReserva" placeholder="Responsável / Contato" required>
+                <input type="date" id="dataReserva" required>
+                <input type="time" id="horaReserva" required>
+                <button onclick="cadastrarReserva()">✅ Confirmar Reserva</button>
+                <p class="sucesso" id="mensagemSucesso">Reserva cadastrada com sucesso! ✅</p>
+            </div>
+        </div>
+
+        <!-- Aba: Minhas Reservas -->
+        <div id="painel-minhas" style="display:none;">
+            <div class="card">
+                <h2>Minhas Reservas</h2>
+                <div id="listaMinhas" class="vazio">Nenhuma reserva cadastrada ainda.</div>
+            </div>
+        </div>
+
+        <!-- Aba: Todas as Reservas (só Admin) -->
+        <div id="painel-todas" style="display:none;">
+            <div class="card">
+                <h2>Todas as Reservas do Sistema</h2>
+                <div id="listaTodas" class="vazio">Nenhuma reserva cadastrada ainda.</div>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -63,14 +134,87 @@ const firebaseConfig = {
 
 // Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const auth = firebase.auth();
+const db = firebase.database();
+
+// Estado do usuário
+let usuarioAtual = null;
+let ehAdmin = false;
+
+// ===== DEFINA AQUI SEU E-MAIL DE ADMINISTRADORA =====
+// TROQUE pelo SEU e-mail que você cadastrou no Firebase!
+const emailAdmin = "bredarodolfo7@gmail.com";
+
+// ===== VERIFICAR LOGIN =====
+auth.onAuthStateChanged((usuario) => {
+    if (usuario) {
+        usuarioAtual = usuario;
+        ehAdmin = (usuario.email === emailAdmin);
+        document.getElementById('telaLogin').style.display = 'none';
+        document.getElementById('conteudo').style.display = 'block';
+        document.getElementById('emailUsuario').textContent = usuario.email;
+        document.getElementById('nomeUsuario').textContent = usuario.email.split('@')[0];
+        
+        if (ehAdmin) {
+            document.getElementById('tagAdmin').style.display = 'inline-block';
+            document.getElementById('abaTodas').style.display = 'block';
+            carregarTodasReservas();
+        }
+        carregarMinhasReservas();
+    } else {
+        usuarioAtual = null;
+        document.getElementById('telaLogin').style.display = 'block';
+        document.getElementById('conteudo').style.display = 'none';
+    }
+});
+
+// ===== FAZER LOGIN =====
+function fazerLogin() {
+    const email = document.getElementById('emailLogin').value.trim();
+    const senha = document.getElementById('senhaLogin').value;
+    
+    auth.signInWithEmailAndPassword(email, senha)
+    .then(() => {
+        document.getElementById('erroLogin').style.display = 'none';
+        document.getElementById('emailLogin').value = '';
+        document.getElementById('senhaLogin').value = '';
+    })
+    .catch((erro) => {
+        document.getElementById('erroLogin').style.display = 'block';
+    });
+}
+
+// ===== SAIR =====
+function sair() {
+    auth.signOut();
+    mostrarAba('cadastro');
+}
+
+// ===== TROCAR DE ABA =====
+function mostrarAba(nomeAba) {
+    document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+    document.getElementById('painel-cadastro').style.display = 'none';
+    document.getElementById('painel-minhas').style.display = 'none';
+    document.getElementById('painel-todas').style.display = 'none';
+    
+    if (nomeAba === 'cadastro') {
+        document.querySelectorAll('.aba')[0].classList.add('ativa');
+        document.getElementById('painel-cadastro').style.display = 'block';
+    } else if (nomeAba === 'minhas') {
+        document.querySelectorAll('.aba')[1].classList.add('ativa');
+        document.getElementById('painel-minhas').style.display = 'block';
+    } else if (nomeAba === 'todas' && ehAdmin) {
+        document.querySelectorAll('.aba')[2].classList.add('ativa');
+        document.getElementById('painel-todas').style.display = 'block';
+    }
+}
 
 // ===== CADASTRAR RESERVA =====
 function cadastrarReserva() {
-    const nome = document.getElementById('nome').value.trim();
-    const pessoa = document.getElementById('pessoa').value.trim();
-    const data = document.getElementById('data').value;
-    const hora = document.getElementById('hora').value;
+    const nome = document.getElementById('nomeReserva').value.trim();
+    const pessoa = document.getElementById('pessoaReserva').value.trim();
+    const data = document.getElementById('dataReserva').value;
+    const hora = document.getElementById('horaReserva').value;
 
     if (!nome || !pessoa || !data || !hora) {
         alert('Preencha todos os campos!');
@@ -82,64 +226,96 @@ function cadastrarReserva() {
         pessoa,
         data,
         hora,
+        usuarioEmail: usuarioAtual.email,
+        usuarioUid: usuarioAtual.uid,
         dataCadastro: new Date().toISOString()
     };
 
-    database.ref('reservas').push(reserva)
+    db.ref('reservas').push(reserva)
     .then(() => {
         document.getElementById('mensagemSucesso').style.display = 'block';
         setTimeout(() => {
             document.getElementById('mensagemSucesso').style.display = 'none';
         }, 3000);
-        // Limpa formulário
-        document.getElementById('nome').value = '';
-        document.getElementById('pessoa').value = '';
-        document.getElementById('data').value = '';
-        document.getElementById('hora').value = '';
+        document.getElementById('nomeReserva').value = '';
+        document.getElementById('pessoaReserva').value = '';
+        document.getElementById('dataReserva').value = '';
+        document.getElementById('horaReserva').value = '';
     })
     .catch(erro => {
-        alert('Erro ao reservar: ' + erro.message);
+        alert('Erro ao cadastrar: ' + erro.message);
     });
 }
 
-// ===== EXIBIR RESERVAS EM TEMPO REAL =====
-database.ref('reservas').on('value', (snapshot) => {
-    const lista = document.getElementById('listaReservas');
-    lista.innerHTML = '';
-    
-    const dados = snapshot.val();
-    if (!dados) {
-        lista.innerHTML = '<p style="color:#718096; text-align:center;">Nenhuma reserva ainda. Seja o primeiro! 🎉</p>';
-        document.getElementById('ultimaAtualizacao').textContent = 'Atualizado agora';
-        return;
-    }
+// ===== CARREGAR MINHAS RESERVAS =====
+function carregarMinhasReservas() {
+    db.ref('reservas').on('value', (snapshot) => {
+        const lista = document.getElementById('listaMinhas');
+        lista.innerHTML = '';
+        
+        const dados = snapshot.val();
+        if (!dados) {
+            lista.innerHTML = '<p class="vazio">Nenhuma reserva cadastrada ainda.</p>';
+            return;
+        }
 
-    // Transforma objeto em array e ordena por data e hora
-    const reservas = Object.entries(dados).map(([id, res]) => ({id, ...res}));
-    reservas.sort((a, b) => {
-        const ordem = a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora);
-        return ordem;
+        const reservas = Object.entries(dados).map(([id, res]) => ({id, ...res}));
+        const minhas = reservas.filter(r => r.usuarioUid === usuarioAtual.uid);
+        minhas.sort((a, b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
+
+        if (minhas.length === 0) {
+            lista.innerHTML = '<p class="vazio">Você ainda não fez nenhuma reserva.</p>';
+            return;
+        }
+
+        minhas.forEach(res => {
+            const div = document.createElement('div');
+            div.className = 'reserva-item';
+            div.innerHTML = `
+                <p class="reserva-nome">${res.nome}</p>
+                <p class="reserva-dados">👤 Responsável: ${res.pessoa}</p>
+                <p class="reserva-dados">📅 Data: ${formatarData(res.data)} às ${res.hora}</p>
+                <button class="btn-excluir" onclick="excluirReserva('${res.id}')">🗑️ Excluir</button>
+            `;
+            lista.appendChild(div);
+        });
     });
+}
 
-    reservas.forEach(res => {
-        const div = document.createElement('div');
-        div.className = 'reserva-item';
-        div.innerHTML = `
-            <p class="reserva-nome">${res.nome}</p>
-            <p class="reserva-dados">👤 Responsável: ${res.pessoa}</p>
-            <p class="reserva-dados">📅 Data: ${formatarData(res.data)} às ${res.hora}</p>
-            <button class="btn-excluir" onclick="excluirReserva('${res.id}')">🗑️ Excluir</button>
-        `;
-        lista.appendChild(div);
+// ===== CARREGAR TODAS AS RESERVAS (ADMIN) =====
+function carregarTodasReservas() {
+    db.ref('reservas').on('value', (snapshot) => {
+        const lista = document.getElementById('listaTodas');
+        lista.innerHTML = '';
+        
+        const dados = snapshot.val();
+        if (!dados) {
+            lista.innerHTML = '<p class="vazio">Nenhuma reserva cadastrada ainda.</p>';
+            return;
+        }
+
+        const reservas = Object.entries(dados).map(([id, res]) => ({id, ...res}));
+        reservas.sort((a, b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
+
+        reservas.forEach(res => {
+            const div = document.createElement('div');
+            div.className = 'reserva-item';
+            div.innerHTML = `
+                <p class="reserva-nome">${res.nome}</p>
+                <p class="reserva-dados">👤 Responsável: ${res.pessoa}</p>
+                <p class="reserva-dados">📅 Data: ${formatarData(res.data)} às ${res.hora}</p>
+                <p class="reserva-vendedor">✅ Cadastrado por: ${res.usuarioEmail}</p>
+                <button class="btn-excluir" onclick="excluirReserva('${res.id}')">🗑️ Excluir</button>
+            `;
+            lista.appendChild(div);
+        });
     });
-
-    document.getElementById('ultimaAtualizacao').textContent = 'Atualizado agora';
-});
+}
 
 // ===== EXCLUIR RESERVA =====
 function excluirReserva(id) {
     if (confirm('Tem certeza que deseja excluir esta reserva?')) {
-        database.ref('reservas/' + id).remove();
+        db.ref('reservas/' + id).remove();
     }
 }
 
