@@ -3,437 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lancha Stand By — Reservas</title>
+    <title>Sistema de Reservas - Standby</title>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background: linear-gradient(135deg, #1a73e8, #00c6ff); min-height: 100vh; }
-        
-        .tela-login { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .card-login { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .logo { text-align: center; font-size: 40px; margin-bottom: 16px; }
-        h1 { text-align: center; color: #1a73e8; margin-bottom: 8px; font-size: 24px; }
-        .subtitulo { text-align: center; color: #666; margin-bottom: 32px; font-size: 14px; }
-        input { width: 100%; padding: 14px; margin-bottom: 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; outline: none; }
-        input:focus { border-color: #1a73e8; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-primario { background: #1a73e8; color: white; }
-        .erro { color: #d93025; text-align: center; margin-top: 16px; display: none; }
-        
-        .tela { display: none; padding: 16px; background: #f0f4f8; min-height: 100vh; }
-        .cabecalho { background: white; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .btn-sair { background: #e53935; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-        .cartao { background: white; padding: 20px; border-radius: 12px; margin-bottom: 16px; }
-        h3 { margin-bottom: 16px; color: #333; }
-        .abas { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .aba { padding: 10px 18px; background: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
-        .aba.ativa { background: #1a73e8; color: white; }
-        .item { padding: 12px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-        .btn-perigo { background: #e53935; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        .btn-sucesso { background: #2e7d32; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-        .btn-cinza { background: #e0e0e0; color: #333; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-        .vazio { text-align: center; color: #999; padding: 30px; }
-        .data { font-weight: bold; color: #1a73e8; }
-        .vendedor { font-size: 13px; color: #666; }
-        
-        .mes { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .mes button { background: #1a73e8; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-        .grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .dia { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 14px; border: none; background: #f0f4f8; }
-        .dia-nome { background: transparent; font-weight: bold; cursor: default; font-size: 12px; padding: 8px 0; }
-        .dia-vazio { background: transparent; cursor: default; }
-        .dia-livre { background: #e8f5e9; color: #2e7d32; border: 2px solid #a5d6a7; }
-        .dia-livre:hover { background: #c8e6c9; }
-        .dia-ocupado { background: #ffebee; color: #c62828; border: 2px solid #ef9a9a; cursor: not-allowed; opacity: 0.8; }
-        .dia-passado { background: #f5f5f5; color: #ccc; border: 2px solid #eee; cursor: not-allowed; }
-        .legenda { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
-        .legenda span { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-        .bolinha { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-        
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px; z-index: 100; }
-        .modal.aberto { display: flex; }
-        .conteudo-modal { background: white; padding: 24px; border-radius: 12px; width: 100%; max-width: 400px; }
-        .botoes { display: flex; gap: 10px; margin-top: 10px; }
-        .botoes button { flex: 1; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: #f0f4f8; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; color: #2d3748; margin-bottom: 30px; }
+        .form-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h2 { color: #2b6cb0; margin-bottom: 20px; font-size: 1.3rem; }
+        input, button, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+        button { background: #3182ce; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #2b6cb0; }
+        .btn-excluir { background: #e53e3e; }
+        .btn-excluir:hover { background: #c53030; }
+        .reserva-item { border-bottom: 1px solid #e2e8f0; padding: 15px 0; }
+        .reserva-item:last-child { border-bottom: none; }
+        .reserva-nome { font-weight: bold; color: #2d3748; font-size: 1.1rem; }
+        .reserva-dados { color: #4a5568; margin: 5px 0; }
+        .sucesso { color: #2f855a; margin-top: 10px; display: none; }
+        .atualizado { color: #718096; font-size: 0.85rem; margin-top: 5px; }
     </style>
 </head>
 <body>
-<div id="telaLogin" class="tela-login">
-    <div class="card-login">
-        <div class="logo">🚤</div>
-        <h1>Lancha Stand By</h1>
-        <p class="subtitulo">Sistema de Reservas</p>
-        <input type="text" id="usuario" placeholder="Usuário" autocomplete="off">
-        <input type="password" id="senha" placeholder="Senha">
-        <button class="btn btn-primario" onclick="fazerLogin()">Entrar</button>
-        <p class="erro" id="mensagemErro">Usuário ou senha incorretos</p>
-    </div>
-</div>
 
-<div id="telaAdmin" class="tela">
-    <div class="cabecalho">
-        <h1>🚤 Lancha Stand By — Administração</h1>
-        <button class="btn-sair" onclick="sair()">Sair</button>
-    </div>
-    <div class="abas">
-        <button class="aba ativa" onclick="mostrarAbaAdmin('reservas')">📅 Reservas</button>
-        <button class="aba" onclick="mostrarAbaAdmin('vendedores')">👤 Vendedores</button>
-    </div>
-    <div id="abaReservas">
-        <div class="cartao">
-            <h3>Todas as Reservas</h3>
-            <div id="listaReservas"></div>
-        </div>
-    </div>
-    <div id="abaVendedores" style="display:none;">
-        <div class="cartao">
-            <h3>Cadastrar Vendedor</h3>
-            <input type="text" id="nomeVendedor" placeholder="Nome completo">
-            <input type="text" id="loginVendedor" placeholder="Usuário de login">
-            <input type="password" id="senhaVendedor" placeholder="Senha">
-            <button class="btn-sucesso" onclick="cadastrarVendedor()">Cadastrar</button>
-        </div>
-        <div class="cartao">
-            <h3>Vendedores Cadastrados</h3>
-            <div id="listaVendedores"></div>
-        </div>
-    </div>
-</div>
+    <h1>📅 Sistema de Reservas Standby</h1>
 
-<div id="telaVendedor" class="tela">
-    <div class="cabecalho">
-        <div>
-            <h1>🚤 Lancha Stand By — Reservas</h1>
-            <p style="font-size:14px; color:#666;" id="nomeVendedorLogado"></p>
-        </div>
-        <button class="btn-sair" onclick="sair()">Sair</button>
+    <!-- Formulário de Reserva -->
+    <div class="form-card">
+        <h2>Fazer Nova Reserva</h2>
+        <input type="text" id="nome" placeholder="Seu nome completo" required>
+        <input type="text" id="pessoa" placeholder="Nome da pessoa responsável" required>
+        <input type="date" id="data" required>
+        <input type="time" id="hora" required>
+        <button onclick="cadastrarReserva()">✅ Confirmar Reserva</button>
+        <p class="sucesso" id="mensagemSucesso">Reserva realizada com sucesso! ✅</p>
     </div>
-    <div class="abas">
-        <button class="aba ativa" onclick="mostrarAbaVendedor('calendario')">📅 Calendário</button>
-        <button class="aba" onclick="mostrarAbaVendedor('minhas')">📋 Minhas Reservas</button>
-    </div>
-    <div id="abaCalendario">
-        <div class="cartao">
-            <div class="mes">
-                <button onclick="mudarMes(-1)">◀</button>
-                <h3 id="nomeMes"></h3>
-                <button onclick="mudarMes(1)">▶</button>
-            </div>
-            <div class="grade" id="calendario"></div>
-            <div class="legenda">
-                <span><span class="bolinha" style="background:#e8f5e9"></span> Livre</span>
-                <span><span class="bolinha" style="background:#ffebee"></span> Ocupado</span>
-                <span><span class="bolinha" style="background:#f5f5f5"></span> Passado</span>
-            </div>
-        </div>
-    </div>
-    <div id="abaMinhasReservas" style="display:none;">
-        <div class="cartao">
-            <h3>Minhas Reservas</h3>
-            <div id="listaMinhasReservas"></div>
-        </div>
-    </div>
-</div>
 
-<div id="modalReserva" class="modal">
-    <div class="conteudo-modal">
-        <h3>Reservar — <span id="dataSelecionada"></span></h3>
-        <input type="text" id="nomeCliente" placeholder="Nome do cliente">
-        <input type="text" id="telefone" placeholder="Telefone com DDD">
-        <input type="number" id="qtdPessoas" placeholder="Quantidade de pessoas" min="1" max="15">
-        <div class="botoes">
-            <button class="btn-cinza" onclick="fecharModal()">Cancelar</button>
-            <button class="btn-sucesso" onclick="confirmarReserva()">Confirmar</button>
-        </div>
+    <!-- Lista de Reservas -->
+    <div class="form-card">
+        <h2>Reservas Confirmadas</h2>
+        <p class="atualizado" id="ultimaAtualizacao"></p>
+        <div id="listaReservas"></div>
     </div>
-</div>
+
 <script>
-    const ADMIN = { usuario: "admin", senha: "standby2026" };
-    let usuarioLogado = null;
-    let dataAtual = new Date();
-    let dataEscolhida = null;
-    const nomesDias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+// ===== CONFIGURAÇÃO DO FIREBASE =====
+const firebaseConfig = {
+  apiKey: "AIzaSyDHsOIuNg7pEtTg_-bpzJ0QK8foSZseP04",
+  authDomain: "reservas-standby.firebaseapp.com",
+  databaseURL: "https://reservas-standby-default-rtdb.firebaseio.com",
+  projectId: "reservas-standby",
+  storageBucket: "reservas-standby.firebasestorage.app",
+  messagingSenderId: "874813022024",
+  appId: "1:874813022024:web:6219130574f0dd26fe5d7d"
+};
 
-    // Armazenamento compartilhado
-    function obterReservas() {
-        return JSON.parse(localStorage.getItem('reservasCompartilhadas') || '[]');
-    }
-    function salvarReservas(dados) {
-        localStorage.setItem('reservasCompartilhadas', JSON.stringify(dados));
-    }
-    function obterVendedores() {
-        return JSON.parse(localStorage.getItem('vendedoresCompartilhados') || '[]');
-    }
-    function salvarVendedores(dados) {
-        localStorage.setItem('vendedoresCompartilhados', JSON.stringify(dados));
-    }
+// Inicializa Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
-    function fazerLogin() {
-        const usuario = document.getElementById('usuario').value.trim();
-        const senha = document.getElementById('senha').value;
-        const erro = document.getElementById('mensagemErro');
-        erro.style.display = 'none';
-        
-        if (usuario === ADMIN.usuario && senha === ADMIN.senha) {
-            usuarioLogado = { tipo: 'admin', nome: 'Administrador' };
-            mostrarTela('admin');
-            return;
-        }
-        
-        const vendedores = obterVendedores();
-        const vendedor = vendedores.find(v => v.usuario === usuario && v.senha === senha);
-        if (vendedor) {
-            usuarioLogado = { tipo: 'vendedor', nome: vendedor.nome, id: vendedor.id };
-            mostrarTela('vendedor');
-        } else {
-            erro.style.display = 'block';
-        }
+// ===== CADASTRAR RESERVA =====
+function cadastrarReserva() {
+    const nome = document.getElementById('nome').value.trim();
+    const pessoa = document.getElementById('pessoa').value.trim();
+    const data = document.getElementById('data').value;
+    const hora = document.getElementById('hora').value;
+
+    if (!nome || !pessoa || !data || !hora) {
+        alert('Preencha todos os campos!');
+        return;
     }
 
-    function mostrarTela(tipo) {
-        document.getElementById('telaLogin').style.display = 'none';
-        document.getElementById('telaAdmin').style.display = 'none';
-        document.getElementById('telaVendedor').style.display = 'none';
-        
-        if (tipo === 'admin') {
-            document.getElementById('telaAdmin').style.display = 'block';
-            carregarListaReservas();
-            carregarListaVendedores();
-        } else if (tipo === 'vendedor') {
-            document.getElementById('telaVendedor').style.display = 'block';
-            document.getElementById('nomeVendedorLogado').textContent = usuarioLogado.nome;
-            mostrarAbaVendedor('calendario');
-            desenharCalendario();
-        }
+    const reserva = {
+        nome,
+        pessoa,
+        data,
+        hora,
+        dataCadastro: new Date().toISOString()
+    };
+
+    database.ref('reservas').push(reserva)
+    .then(() => {
+        document.getElementById('mensagemSucesso').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('mensagemSucesso').style.display = 'none';
+        }, 3000);
+        // Limpa formulário
+        document.getElementById('nome').value = '';
+        document.getElementById('pessoa').value = '';
+        document.getElementById('data').value = '';
+        document.getElementById('hora').value = '';
+    })
+    .catch(erro => {
+        alert('Erro ao reservar: ' + erro.message);
+    });
+}
+
+// ===== EXIBIR RESERVAS EM TEMPO REAL =====
+database.ref('reservas').on('value', (snapshot) => {
+    const lista = document.getElementById('listaReservas');
+    lista.innerHTML = '';
+    
+    const dados = snapshot.val();
+    if (!dados) {
+        lista.innerHTML = '<p style="color:#718096; text-align:center;">Nenhuma reserva ainda. Seja o primeiro! 🎉</p>';
+        document.getElementById('ultimaAtualizacao').textContent = 'Atualizado agora';
+        return;
     }
 
-    function sair() {
-        usuarioLogado = null;
-        document.getElementById('telaLogin').style.display = 'flex';
-        document.getElementById('usuario').value = '';
-        document.getElementById('senha').value = '';
-        document.getElementById('mensagemErro').style.display = 'none';
-    }
+    // Transforma objeto em array e ordena por data e hora
+    const reservas = Object.entries(dados).map(([id, res]) => ({id, ...res}));
+    reservas.sort((a, b) => {
+        const ordem = a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora);
+        return ordem;
+    });
 
-    function mostrarAbaAdmin(nome) {
-        document.querySelectorAll('#telaAdmin .aba').forEach(a => a.classList.remove('ativa'));
-        event.target.classList.add('ativa');
-        document.getElementById('abaReservas').style.display = 'none';
-        document.getElementById('abaVendedores').style.display = 'none';
-        document.getElementById(nome === 'reservas' ? 'abaReservas' : 'abaVendedores').style.display = 'block';
-        if (nome === 'reservas') carregarListaReservas();
-    }
+    reservas.forEach(res => {
+        const div = document.createElement('div');
+        div.className = 'reserva-item';
+        div.innerHTML = `
+            <p class="reserva-nome">${res.nome}</p>
+            <p class="reserva-dados">👤 Responsável: ${res.pessoa}</p>
+            <p class="reserva-dados">📅 Data: ${formatarData(res.data)} às ${res.hora}</p>
+            <button class="btn-excluir" onclick="excluirReserva('${res.id}')">🗑️ Excluir</button>
+        `;
+        lista.appendChild(div);
+    });
 
-    function mostrarAbaVendedor(nome) {
-        document.querySelectorAll('#telaVendedor .aba').forEach(a => a.classList.remove('ativa'));
-        event.target.classList.add('ativa');
-        document.getElementById('abaCalendario').style.display = 'none';
-        document.getElementById('abaMinhasReservas').style.display = 'none';
-        document.getElementById(nome === 'calendario' ? 'abaCalendario' : 'abaMinhasReservas').style.display = 'block';
-        if (nome === 'calendario') desenharCalendario();
-        if (nome === 'minhas') carregarMinhasReservas();
-    }
+    document.getElementById('ultimaAtualizacao').textContent = 'Atualizado agora';
+});
 
-    function carregarListaReservas() {
-        const reservas = obterReservas();
-        const lista = document.getElementById('listaReservas');
-        if (reservas.length === 0) {
-            lista.innerHTML = '<p class="vazio">Nenhuma reserva feita ainda</p>';
-            return;
-        }
-        lista.innerHTML = reservas
-            .sort((a, b) => new Date(a.data) - new Date(b.data))
-            .map((r, i) => `
-                <div class="item">
-                    <div>
-                        <div class="data">${new Date(r.data+'T00:00:00').toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'})}</div>
-                        <div><strong>${r.nome}</strong> — ${r.pessoas} pessoas</div>
-                        <div style="font-size:13px; color:#666;">📞 ${r.telefone}</div>
-                        <div class="vendedor">💼 Por: ${r.vendedorNome}</div>
-                    </div>
-                    <button class="btn-perigo" onclick="cancelarReserva(${i})">Cancelar</button>
-                </div>
-            `).join('');
+// ===== EXCLUIR RESERVA =====
+function excluirReserva(id) {
+    if (confirm('Tem certeza que deseja excluir esta reserva?')) {
+        database.ref('reservas/' + id).remove();
     }
+}
 
-    function carregarMinhasReservas() {
-        const reservas = obterReservas().filter(r => r.vendedorId === usuarioLogado.id);
-        const lista = document.getElementById('listaMinhasReservas');
-        if (reservas.length === 0) {
-            lista.innerHTML = '<p class="vazio">Você ainda não fez nenhuma reserva</p>';
-            return;
-        }
-        lista.innerHTML = reservas
-            .sort((a, b) => new Date(a.data) - new Date(b.data))
-            .map((r) => {
-                const indiceReal = obterReservas().indexOf(r);
-                return `
-                <div class="item">
-                    <div>
-                        <div class="data">${new Date(r.data+'T00:00:00').toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'})}</div>
-                        <div><strong>${r.nome}</strong> — ${r.pessoas} pessoas</div>
-                        <div style="font-size:13px; color:#666;">📞 ${r.telefone}</div>
-                    </div>
-                    <button class="btn-perigo" onclick="cancelarReserva(${indiceReal})">Cancelar</button>
-                </div>
-            `}).join('');
-    }
+// ===== FORMATAR DATA =====
+function formatarData(dataISO) {
+    const [ano, mes, dia] = dataISO.split('-');
+    return `${dia}/${mes}/${ano}`;
+}
 
-    function cancelarReserva(indice) {
-        if (!confirm('Tem certeza? A data será liberada para novas reservas.')) return;
-        const reservas = obterReservas();
-        reservas.splice(indice, 1);
-        salvarReservas(reservas);
-        carregarListaReservas();
-        carregarMinhasReservas();
-        desenharCalendario();
-    }
-
-    function cadastrarVendedor() {
-        const nome = document.getElementById('nomeVendedor').value.trim();
-        const login = document.getElementById('loginVendedor').value.trim();
-        const senha = document.getElementById('senhaVendedor').value;
-        
-        if (!nome || !login || !senha) {
-            alert('Preencha todos os campos!');
-            return;
-        }
-        
-        const vendedores = obterVendedores();
-        if (vendedores.some(v => v.usuario === login)) {
-            alert('Esse nome de usuário já existe!');
-            return;
-        }
-        
-        vendedores.push({ id: Date.now(), nome, usuario: login, senha });
-        salvarVendedores(vendedores);
-        
-        document.getElementById('nomeVendedor').value = '';
-        document.getElementById('loginVendedor').value = '';
-        document.getElementById('senhaVendedor').value = '';
-        
-        carregarListaVendedores();
-        alert('Cadastrado com sucesso! ✅');
-    }
-
-    function carregarListaVendedores() {
-        const vendedores = obterVendedores();
-        const lista = document.getElementById('listaVendedores');
-        if (vendedores.length === 0) {
-            lista.innerHTML = '<p class="vazio">Nenhum vendedor cadastrado</p>';
-            return;
-        }
-        lista.innerHTML = vendedores.map((v, i) => `
-            <div class="item">
-                <div>
-                    <div style="font-weight:bold;">${v.nome}</div>
-                    <div style="font-size:13px; color:#666;">Usuário: ${v.usuario}</div>
-                </div>
-                <button class="btn-perigo" onclick="excluirVendedor(${i})">Excluir</button>
-            </div>
-        `).join('');
-    }
-
-    function excluirVendedor(indice) {
-        if (!confirm('Excluir este vendedor?')) return;
-        const vendedores = obterVendedores();
-        vendedores.splice(indice, 1);
-        salvarVendedores(vendedores);
-        carregarListaVendedores();
-    }
-
-    function mudarMes(direcao) {
-        dataAtual.setMonth(dataAtual.getMonth() + direcao);
-        desenharCalendario();
-    }
-
-    function desenharCalendario() {
-        const ano = dataAtual.getFullYear();
-        const mes = dataAtual.getMonth();
-        document.getElementById('nomeMes').textContent = `${nomesMeses[mes]} de ${ano}`;
-        
-        const primeiroDia = new Date(ano, mes, 1).getDay();
-        const ultimoDia = new Date(ano, mes + 1, 0).getDate();
-        const hoje = new Date();
-        const reservas = obterReservas();
-        const datasOcupadas = reservas.map(r => r.data);
-        
-        let html = '';
-        for (let d = 0; d < 7; d++) {
-            html += `<div class="dia dia-nome">${nomesDias[d]}</div>`;
-        }
-        for (let i = 0; i < primeiroDia; i++) {
-            html += `<div class="dia dia-vazio"></div>`;
-        }
-        for (let dia = 1; dia <= ultimoDia; dia++) {
-            const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-            const dataCompleta = new Date(ano, mes, dia);
-            const ehPassado = dataCompleta < hoje && dataCompleta.toDateString() !== hoje.toDateString();
-            const ehOcupado = datasOcupadas.includes(dataStr);
-            
-            let classe = 'dia-livre';
-            if (ehPassado) classe = 'dia-passado';
-            else if (ehOcupado) classe = 'dia-ocupado';
-            
-            html += `<div class="dia ${classe}" onclick="clicarDia('${dataStr}', ${ehPassado || ehOcupado})">${dia}</div>`;
-        }
-        document.getElementById('calendario').innerHTML = html;
-    }
-
-    function clicarDia(dataStr, bloqueado) {
-        if (bloqueado) {
-            alert('Esta data não está disponível para reserva.');
-            return;
-        }
-        dataEscolhida = dataStr;
-        const dataFormatada = new Date(dataStr+'T00:00:00').toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
-        document.getElementById('dataSelecionada').textContent = dataFormatada;
-        document.getElementById('modalReserva').classList.add('aberto');
-        document.getElementById('nomeCliente').value = '';
-        document.getElementById('telefone').value = '';
-        document.getElementById('qtdPessoas').value = '';
-    }
-
-    function fecharModal() {
-        document.getElementById('modalReserva').classList.remove('aberto');
-        dataEscolhida = null;
-    }
-
-    function confirmarReserva() {
-        const nome = document.getElementById('nomeCliente').value.trim();
-        const telefone = document.getElementById('telefone').value.trim();
-        const pessoas = parseInt(document.getElementById('qtdPessoas').value);
-        
-        if (!nome || !telefone || !pessoas) {
-            alert('Preencha todos os campos!');
-            return;
-        }
-        
-        const reservas = obterReservas();
-        if (reservas.some(r => r.data === dataEscolhida)) {
-            alert('⚠️ Esta data já foi reservada! Atualize e tente outra.');
-            fecharModal();
-            desenharCalendario();
-            return;
-        }
-        
-        reservas.push({
-            data: dataEscolhida,
-            nome,
-            telefone,
-            pessoas,
-            vendedorId: usuarioLogado.id,
-            vendedorNome: usuarioLogado.nome
-        });
-        salvarReservas(reservas);
-        
-        alert('✅ Reserva confirmada!');
-        fecharModal();
-        desenharCalendario();
-        if (usuarioLogado.tipo === 'admin') carregarListaReservas();
-        else carregarMinhasReservas();
-    }
 </script>
-
 </body>
 </html>
