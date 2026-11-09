@@ -10,75 +10,143 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { background: #f0f4f8; padding: 20px; max-width: 1200px; margin: 0 auto; font-size: 18px; line-height: 1.6; }
+        body { background: #f0f4f8; padding: 20px; max-width: 1100px; margin: 0 auto; font-size: 16px; line-height: 1.6; }
         
         .logo-container { text-align: center; margin-bottom: 20px; }
-        .logo-container img { max-width: 200px; height: auto; }
+        .logo-container img { max-width: 180px; height: auto; }
         
-        .tela-login { max-width: 450px; margin: 60px auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
-        .tela-login h1 { text-align: center; color: #b91c1c; margin-bottom: 5px; font-size: 2rem; }
-        .tela-login p.subtitulo { text-align: center; color: #6b7280; margin-bottom: 30px; }
+        .tela-login { max-width: 420px; margin: 50px auto; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .tela-login h1 { text-align: center; color: #b91c1c; margin-bottom: 5px; font-size: 1.6rem; }
+        .tela-login p.subtitulo { text-align: center; color: #6b7280; margin-bottom: 25px; }
         
-        input, button { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 1.05rem; }
-        input:focus { border-color: #b91c1c; outline: none; box-shadow: 0 0 0 3px rgba(185,28,28,0.15); }
+        input, button { width: 100%; padding: 14px; margin: 8px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        input:focus { border-color: #b91c1c; outline: none; }
         
-        button { background: #b91c1c; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
+        button { background: #b91c1c; color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background: #991b1b; }
         
-        .btn-sair { background: #4b5563; margin: 10px 0 30px; }
+        .btn-sair { background: #4b5563; margin: 10px 0 25px; }
         .btn-sair:hover { background: #374151; }
         
-        .erro { color: #dc2626; margin-top: 15px; display: none; text-align: center; font-weight: bold; }
+        .erro { color: #dc2626; margin-top: 12px; display: none; text-align: center; font-weight: bold; }
         
-        .cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
+        .cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap; gap: 10px; }
         .usuario { color: #333; }
-        .admin-tag { display: inline-block; background: #b91c1c; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-left: 8px; }
+        .admin-tag { display: inline-block; background: #b91c1c; color: white; padding: 3px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; margin-left: 6px; }
         
-        .abas { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .aba { padding: 12px 24px; background: #e5e7eb; border-radius: 10px; cursor: pointer; font-weight: bold; border: none; }
+        .abas { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .aba { padding: 10px 20px; background: #e5e7eb; border-radius: 8px; cursor: pointer; font-weight: bold; border: none; font-size: 0.95rem; }
         .aba.ativa { background: #b91c1c; color: white; }
         .aba:hover { background: #d1d5db; }
         
-        /* TELA DA DATA — GRANDE E CENTRALIZADA */
-        .tela-data-grande { 
-            text-align: center; 
-            padding: 40px 20px; 
+        /* === CALENDÁRIO VISÍVEL NA TELA === */
+        .container-calendario { 
             background: white; 
-            border-radius: 15px; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            min-height: 500px;
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .titulo-calendario { 
+            text-align: center; 
+            color: #b91c1c; 
+            margin-bottom: 20px; 
+            font-size: 1.1rem;
+        }
+        .navegacao-mes { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px;
+        }
+        .botao-mes { 
+            background: #f3f4f6; 
+            color: #333; 
+            border: none; 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            font-size: 1.1rem;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 0;
         }
-        .tela-data-grande h2 { color: #b91c1c; margin-bottom: 40px; font-size: 1.6rem; }
-        .tela-data-grande input[type="date"] {
-            font-size: 1.8rem;
-            padding: 30px;
-            width: 100%;
-            max-width: 450px;
-            text-align: center;
-            border: 3px solid #b91c1c;
+        .botao-mes:hover { background: #e5e7eb; }
+        .nome-mes { font-weight: bold; font-size: 1rem; }
+        
+        .dias-semana { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
+        .dia-semana { text-align: center; font-weight: bold; color: #6b7280; font-size: 0.85rem; padding: 8px; }
+        
+        .grade-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .dia { 
+            text-align: center; 
+            padding: 12px 8px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .dia:hover { background: #fef2f2; color: #b91c1c; }
+        .dia.vazio { cursor: default; background: transparent; }
+        .dia.passado { color: #ccc; cursor: not-allowed; }
+        .dia.selecionado { 
+            background: #b91c1c; 
+            color: white; 
+            font-weight: bold;
+        }
+        
+        .data-selecionada-texto { 
+            text-align: center; 
+            margin-top: 18px; 
+            font-weight: bold; 
+            color: #b91c1c;
+            font-size: 1rem;
+        }
+        .botao-confirmar { width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; }
+        
+        /* === TELA DE DADOS === */
+        .container-dados {
+            display: none;
+            background: white;
+            padding: 25px;
             border-radius: 12px;
-            cursor: pointer;
-            background: #fff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 500px;
+            margin: 0 auto;
         }
-        .botao-confirmar-data { max-width: 450px; margin-top: 30px; font-size: 1.2rem; padding: 18px; }
+        .voltar {
+            background: #6b7280;
+            margin-bottom: 15px;
+            max-width: 140px;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        .destaque-data {
+            background: #fef2f2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .sucesso {
+            color: #16a34a;
+            margin-top: 15px;
+            display: none;
+            font-weight: bold;
+            text-align: center;
+            padding: 12px;
+            background: #f0fdf4;
+            border-radius: 8px;
+        }
         
-        /* TELA DE DADOS */
-        .tela-dados { display: none; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-        .data-escolhida { background: #fef2f2; color: #b91c1c; font-weight: bold; font-size: 1.3rem; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; }
-        .botao-voltar { background: #6b7280; margin-bottom: 20px; max-width: 200px; font-size: 1rem; padding: 12px; }
-        .botao-voltar:hover { background: #4b5563; }
-        
-        .sucesso { color: #16a34a; margin-top: 20px; display: none; font-weight: bold; font-size: 1.1rem; text-align: center; padding: 15px; background: #f0fdf4; border-radius: 10px; }
-        
-        .lista-reservas { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-        .reserva-item { border-bottom: 1px solid #eee; padding: 20px 0; }
-        .reserva-nome { font-weight: bold; color: #b91c1c; font-size: 1.1rem; margin-bottom: 8px; }
-        .reserva-dados { color: #444; margin: 5px 0; }
-        .vazio { text-align: center; color: #888; padding: 50px 20px; }
+        .lista-reservas { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .reserva-item { border-bottom: 1px solid #eee; padding: 18px 0; }
+        .reserva-data { font-weight: bold; color: #b91c1c; margin-bottom: 5px; }
+        .vazio { text-align: center; color: #888; padding: 40px 20px; }
     </style>
 </head>
 <body>
@@ -95,7 +163,7 @@
         <p class="erro" id="erroLogin"></p>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL — SÓ APARECE QUANDO LOGADO -->
+    <!-- CONTEÚDO PRINCIPAL -->
     <div id="conteudo" style="display:none;">
         <div class="cabecalho">
             <div class="usuario">
@@ -114,48 +182,71 @@
             <button class="aba" id="abaTodas" style="display:none;" onclick="mostrarAba('todas')">📊 Todas as Reservas</button>
         </div>
 
-        <!-- ABA: NOVA RESERVA -->
+        <!-- ABA: NOVA RESERVA — CALENDÁRIO VISÍVEL -->
         <div id="painelCadastro">
             
-            <!-- PASSO 1 — CALENDÁRIO GRANDE NA TELA TODA -->
-            <div id="passoData" class="tela-data-grande">
-                <h2>📅 Escolha a data da reserva</h2>
-                <input type="date" id="dataReserva">
-                <button class="botao-confirmar-data" onclick="avancarDados()">✅ Confirmar esta data</button>
+            <!-- PASSO 1 — CALENDÁRIO ABERTO NA TELA -->
+            <div id="blocoCalendario" class="container-calendario">
+                <p class="titulo-calendario">Escolha a data da reserva</p>
+                
+                <!-- Navegação com setas -->
+                <div class="navegacao-mes">
+                    <button class="botao-mes" onclick="mudarMes(-1)">◀</button>
+                    <span class="nome-mes" id="nomeMesAno"></span>
+                    <button class="botao-mes" onclick="mudarMes(1)">▶</button>
+                </div>
+                
+                <!-- Dias da semana -->
+                <div class="dias-semana">
+                    <span class="dia-semana">D</span>
+                    <span class="dia-semana">S</span>
+                    <span class="dia-semana">T</span>
+                    <span class="dia-semana">Q</span>
+                    <span class="dia-semana">Q</span>
+                    <span class="dia-semana">S</span>
+                    <span class="dia-semana">S</span>
+                </div>
+                
+                <!-- Os dias do mês -->
+                <div class="grade-dias" id="gradeDias"></div>
+                
+                <!-- Data escolhida e botão -->
+                <p class="data-selecionada-texto" id="dataEscolhidaTexto"></p>
+                <button class="botao-confirmar" id="botaoConfirmarData" onclick="irParaDados()" style="display:none;">
+                    Confirmar esta data
+                </button>
             </div>
 
-            <!-- PASSO 2 — DADOS — APARECE DEPOIS DE ESCOLHER A DATA -->
-            <div id="passoDados" class="tela-dados">
-                <button class="botao-voltar" onclick="voltarEscolherData()">← Escolher outra data</button>
+            <!-- PASSO 2 — FORMULÁRIO DE DADOS -->
+            <div id="blocoDados" class="container-dados">
+                <button class="voltar" onclick="voltarParaCalendario()">← Escolher outra data</button>
                 
-                <div class="data-escolhida">
-                    📅 Data escolhida: <span id="dataEscolhida"></span>
-                </div>
+                <div class="destaque-data" id="dataConfirmada"></div>
                 
                 <input type="text" id="nomeReserva" placeholder="Nome do passeio ou do cliente">
                 <input type="text" id="responsavel" placeholder="Nome do responsável + telefone">
                 <input type="number" id="qtdPessoas" placeholder="Quantidade de pessoas" min="1">
                 <input type="time" id="horaReserva">
                 
-                <button onclick="salvarReserva()">✅ CONFIRMAR E SALVAR</button>
+                <button onclick="salvarReserva()">✅ Confirmar e Salvar</button>
                 <p class="sucesso" id="mensagemSucesso">✅ Reserva cadastrada com sucesso!</p>
             </div>
         </div>
 
         <!-- ABA: MINHAS RESERVAS -->
         <div id="painelMinhas" style="display:none;" class="lista-reservas">
-            <h3>Suas reservas</h3>
+            <h3>Minhas Reservas</h3>
             <div id="listaMinhas"></div>
         </div>
 
         <!-- ABA: TODAS AS RESERVAS -->
         <div id="painelTodas" style="display:none;" class="lista-reservas">
-            <h3>Todas as reservas do sistema</h3>
+            <h3>Todas as Reservas</h3>
             <div id="listaTodas"></div>
         </div>
     </div>
 <script>
-// ===== CONFIGURAÇÃO DO FIREBASE =====
+// ===== FIREBASE =====
 const firebaseConfig = {
   apiKey: "AIzaSyDHsOIuNg7pEtTg_-bpzJ0QK8foSZseP04",
   authDomain: "reservas-standby.firebaseapp.com",
@@ -166,7 +257,6 @@ const firebaseConfig = {
   appId: "1:874813022024:web:6219130574f0dd26fe5d7d"
 };
 
-// Inicializa
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
@@ -175,111 +265,159 @@ let usuarioAtual = null;
 let ehAdmin = false;
 const emailAdmin = "standby.reservas@gmail.com";
 
-// Bloqueia datas passadas
-const hoje = new Date().toISOString().split('T')[0];
-document.addEventListener('DOMContentLoaded', () => {
-    const campoData = document.getElementById('dataReserva');
-    if (campoData) campoData.setAttribute('min', hoje);
-});
+// Variáveis do calendário
+let dataAtual = new Date();
+let dataSelecionada = null;
+const hoje = new Date();
+hoje.setHours(0, 0, 0, 0);
 
-// ===== FAZER LOGIN =====
+// ===== RENDERIZAR CALENDÁRIO =====
+function renderizarCalendario() {
+    const ano = dataAtual.getFullYear();
+    const mes = dataAtual.getMonth();
+    
+    // Nome do mês
+    const nomesMeses = [
+        "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+        "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+    ];
+    document.getElementById("nomeMesAno").textContent = `${nomesMeses[mes]} de ${ano}`;
+    
+    // Primeiro dia do mês (0=domingo)
+    const primeiroDia = new Date(ano, mes, 1).getDay();
+    // Último dia do mês
+    const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+    
+    const grade = document.getElementById("gradeDias");
+    grade.innerHTML = "";
+    
+    // Dias vazios antes do primeiro dia
+    for (let i = 0; i < primeiroDia; i++) {
+        grade.innerHTML += `<div class="dia vazio"></div>`;
+    }
+    
+    // Dias do mês
+    for (let dia = 1; dia <= ultimoDia; dia++) {
+        const dataDia = new Date(ano, mes, dia);
+        const ehPassado = dataDia < hoje;
+        const ehSelecionada = dataSelecionada && 
+            dataSelecionada.getDate() === dia && 
+            dataSelecionada.getMonth() === mes && 
+            dataSelecionada.getFullYear() === ano;
+        
+        let classes = "dia";
+        if (ehPassado) classes += " passado";
+        if (ehSelecionada) classes += " selecionado";
+        
+        const onclick = ehPassado ? "" : `onclick="escolherDia(${ano}, ${mes}, ${dia})"`;
+        
+        grade.innerHTML += `<div class="${classes}" ${onclick}>${dia}</div>`;
+    }
+}
+
+// ===== MUDAR MÊS COM AS SETAS =====
+function mudarMes(diferenca) {
+    dataAtual.setMonth(dataAtual.getMonth() + diferenca);
+    renderizarCalendario();
+}
+
+// ===== ESCOLHER UM DIA =====
+function escolherDia(ano, mes, dia) {
+    dataSelecionada = new Date(ano, mes, dia);
+    renderizarCalendario();
+    
+    // Mostra data escolhida e botão
+    const diaF = String(dia).padStart(2, '0');
+    const mesF = String(mes + 1).padStart(2, '0');
+    document.getElementById("dataEscolhidaTexto").textContent = `${diaF}/${mesF}/${ano}`;
+    document.getElementById("botaoConfirmarData").style.display = "block";
+}
+
+// ===== IR PARA FORMULÁRIO =====
+function irParaDados() {
+    if (!dataSelecionada) return;
+    
+    const dia = String(dataSelecionada.getDate()).padStart(2, '0');
+    const mes = String(dataSelecionada.getMonth() + 1).padStart(2, '0');
+    const ano = dataSelecionada.getFullYear();
+    document.getElementById("dataConfirmada").textContent = `${dia}/${mes}/${ano}`;
+    
+    document.getElementById("blocoCalendario").style.display = "none";
+    document.getElementById("blocoDados").style.display = "block";
+}
+
+// ===== VOLTAR PARA CALENDÁRIO =====
+function voltarParaCalendario() {
+    document.getElementById("blocoDados").style.display = "none";
+    document.getElementById("blocoCalendario").style.display = "block";
+    
+    // Limpa campos
+    document.getElementById("nomeReserva").value = "";
+    document.getElementById("responsavel").value = "";
+    document.getElementById("qtdPessoas").value = "";
+    document.getElementById("horaReserva").value = "";
+    document.getElementById("mensagemSucesso").style.display = "none";
+}
+
+// ===== LOGIN =====
 function fazerLogin() {
-    const email = document.getElementById('emailLogin').value.trim();
-    const senha = document.getElementById('senhaLogin').value;
-    const erro = document.getElementById('erroLogin');
+    const email = document.getElementById("emailLogin").value.trim();
+    const senha = document.getElementById("senhaLogin").value;
+    const erro = document.getElementById("erroLogin");
     
     if (!email || !senha) {
-        erro.textContent = '⚠️ Preencha e-mail e senha!';
-        erro.style.display = 'block';
+        erro.textContent = "⚠️ Preencha e-mail e senha!";
+        erro.style.display = "block";
         return;
     }
     
     auth.signInWithEmailAndPassword(email, senha)
-    .then(() => {
-        erro.style.display = 'none';
-    })
-    .catch((erro) => {
-        console.log('Erro:', erro.code);
-        switch(erro.code) {
-            case 'auth/user-not-found':
-                erro.textContent = '❌ E-mail não encontrado!';
-                break;
-            case 'auth/wrong-password':
-                erro.textContent = '❌ Senha incorreta!';
-                break;
-            case 'auth/invalid-email':
-                erro.textContent = '❌ Formato de e-mail inválido!';
-                break;
-            default:
-                erro.textContent = '❌ Erro ao entrar. Confira os dados.';
+    .then(() => erro.style.display = "none")
+    .catch((e) => {
+        switch(e.code) {
+            case "auth/user-not-found": erro.textContent = "❌ E-mail não encontrado!"; break;
+            case "auth/wrong-password": erro.textContent = "❌ Senha incorreta!"; break;
+            default: erro.textContent = "❌ Erro ao entrar. Confira os dados.";
         }
-        erro.style.display = 'block';
+        erro.style.display = "block";
     });
 }
 
-// ===== VERIFICAR SE ESTÁ LOGADO =====
+// ===== VERIFICAR LOGADO =====
 auth.onAuthStateChanged((usuario) => {
     if (usuario) {
         usuarioAtual = usuario;
         ehAdmin = (usuario.email === emailAdmin);
         
-        // Mostra conteúdo, esconde login
-        document.getElementById('telaLogin').style.display = 'none';
-        document.getElementById('conteudo').style.display = 'block';
+        document.getElementById("telaLogin").style.display = "none";
+        document.getElementById("conteudo").style.display = "block";
+        document.getElementById("nomeUsuario").textContent = usuario.displayName || usuario.email.split("@")[0];
+        document.getElementById("emailUsuario").textContent = usuario.email;
         
-        // Dados do usuário
-        document.getElementById('nomeUsuario').textContent = usuario.displayName || usuario.email.split('@')[0];
-        document.getElementById('emailUsuario').textContent = usuario.email;
-        
-        // Mostra aba de admin se for você
         if (ehAdmin) {
-            document.getElementById('tagAdmin').style.display = 'inline-block';
-            document.getElementById('abaTodas').style.display = 'block';
+            document.getElementById("tagAdmin").style.display = "inline-block";
+            document.getElementById("abaTodas").style.display = "block";
         }
+        
+        // Inicializa calendário
+        dataAtual = new Date();
+        dataSelecionada = null;
+        renderizarCalendario();
         
         carregarMinhas();
         if (ehAdmin) carregarTodas();
     } else {
         usuarioAtual = null;
-        document.getElementById('telaLogin').style.display = 'block';
-        document.getElementById('conteudo').style.display = 'none';
+        document.getElementById("telaLogin").style.display = "block";
+        document.getElementById("conteudo").style.display = "none";
     }
 });
 
-// ===== SAIR DO SISTEMA =====
+// ===== SAIR =====
 function sair() {
     auth.signOut();
-    voltarEscolherData();
 }
-
-// ===== AVANÇAR PARA PREENCHER DADOS =====
-function avancarDados() {
-    const data = document.getElementById('dataReserva').value;
-    if (!data) {
-        alert('⚠️ Escolha uma data primeiro!');
-        return;
-    }
-    const [ano, mes, dia] = data.split('-');
-    document.getElementById('dataEscolhida').textContent = `${dia}/${mes}/${ano}`;
-    
-    document.getElementById('passoData').style.display = 'none';
-    document.getElementById('passoDados').style.display = 'block';
-}
-
-// ===== VOLTAR PARA ESCOLHER DATA =====
-function voltarEscolherData() {
-    document.getElementById('passoDados').style.display = 'none';
-    document.getElementById('passoData').style.display = 'flex';
-    
-    // Limpa os campos
-    document.getElementById('nomeReserva').value = '';
-    document.getElementById('responsavel').value = '';
-    document.getElementById('qtdPessoas').value = '';
-    document.getElementById('horaReserva').value = '';
-    document.getElementById('mensagemSucesso').style.display = 'none';
-}
-
-// ===== TROCAR DE ABA =====
+// ===== TROCAR ABA =====
 function mostrarAba(nome) {
     document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
     document.getElementById('painelCadastro').style.display = 'none';
@@ -289,7 +427,11 @@ function mostrarAba(nome) {
     if (nome === 'cadastro') {
         document.querySelectorAll('.aba')[0].classList.add('ativa');
         document.getElementById('painelCadastro').style.display = 'block';
-        voltarEscolherData();
+        voltarParaCalendario();
+        dataSelecionada = null;
+        document.getElementById("dataEscolhidaTexto").textContent = "";
+        document.getElementById("botaoConfirmarData").style.display = "none";
+        renderizarCalendario();
     } else if (nome === 'minhas') {
         document.querySelectorAll('.aba')[1].classList.add('ativa');
         document.getElementById('painelMinhas').style.display = 'block';
@@ -300,16 +442,22 @@ function mostrarAba(nome) {
         carregarTodas();
     }
 }
-// ===== SALVAR RESERVA NO BANCO =====
+
+// ===== SALVAR RESERVA =====
 function salvarReserva() {
-    const data = document.getElementById('dataReserva').value;
+    if (!dataSelecionada) {
+        alert("Escolha uma data primeiro!");
+        return;
+    }
+    
+    const data = dataSelecionada.toISOString().split('T')[0];
     const nome = document.getElementById('nomeReserva').value.trim();
     const responsavel = document.getElementById('responsavel').value.trim();
     const quantidade = document.getElementById('qtdPessoas').value;
     const hora = document.getElementById('horaReserva').value;
     
     if (!nome || !responsavel || !quantidade || !hora) {
-        alert('⚠️ Preencha TODOS os campos antes de confirmar!');
+        alert("⚠️ Preencha TODOS os campos!");
         return;
     }
     
@@ -327,15 +475,19 @@ function salvarReserva() {
         document.getElementById('mensagemSucesso').style.display = 'block';
         setTimeout(() => {
             document.getElementById('mensagemSucesso').style.display = 'none';
-            voltarEscolherData();
+            voltarParaCalendario();
+            dataSelecionada = null;
+            document.getElementById("dataEscolhidaTexto").textContent = "";
+            document.getElementById("botaoConfirmarData").style.display = "none";
+            renderizarCalendario();
         }, 3000);
     })
     .catch((erro) => {
-        alert('❌ Erro ao salvar: ' + erro.message);
+        alert("❌ Erro: " + erro.message);
     });
 }
 
-// ===== CARREGAR APENAS AS MINHAS RESERVAS =====
+// ===== CARREGAR MINHAS RESERVAS =====
 function carregarMinhas() {
     const lista = document.getElementById('listaMinhas');
     lista.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
@@ -362,17 +514,17 @@ function carregarMinhas() {
                 const [ano, mes, dia] = r.data.split('-');
                 lista.innerHTML += `
                     <div class="reserva-item">
-                        <p class="reserva-nome">📅 ${dia}/${mes}/${ano} — ${r.hora}</p>
-                        <p class="reserva-dados"><strong>Cliente/Passeio:</strong> ${r.nome}</p>
-                        <p class="reserva-dados"><strong>Responsável:</strong> ${r.responsavel}</p>
-                        <p class="reserva-dados"><strong>Quantidade de pessoas:</strong> ${r.quantidade}</p>
+                        <p class="reserva-data">📅 ${dia}/${mes}/${ano} — ${r.hora}</p>
+                        <p><strong>Cliente/Passeio:</strong> ${r.nome}</p>
+                        <p><strong>Responsável:</strong> ${r.responsavel}</p>
+                        <p><strong>Pessoas:</strong> ${r.quantidade}</p>
                     </div>
                 `;
             });
         });
 }
 
-// ===== CARREGAR TODAS AS RESERVAS (SÓ ADMIN) =====
+// ===== CARREGAR TODAS AS RESERVAS =====
 function carregarTodas() {
     const lista = document.getElementById('listaTodas');
     lista.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
@@ -399,11 +551,11 @@ function carregarTodas() {
                 const [ano, mes, dia] = r.data.split('-');
                 lista.innerHTML += `
                     <div class="reserva-item">
-                        <p class="reserva-nome">📅 ${dia}/${mes}/${ano} — ${r.hora}</p>
-                        <p class="reserva-dados"><strong>Cliente/Passeio:</strong> ${r.nome}</p>
-                        <p class="reserva-dados"><strong>Responsável:</strong> ${r.responsavel}</p>
-                        <p class="reserva-dados"><strong>Quantidade de pessoas:</strong> ${r.quantidade}</p>
-                        <p class="reserva-dados" style="color:#666; font-size:0.9rem;">👤 Cadastrado por: ${r.usuarioEmail}</p>
+                        <p class="reserva-data">📅 ${dia}/${mes}/${ano} — ${r.hora}</p>
+                        <p><strong>Cliente/Passeio:</strong> ${r.nome}</p>
+                        <p><strong>Responsável:</strong> ${r.responsavel}</p>
+                        <p><strong>Pessoas:</strong> ${r.quantidade}</p>
+                        <p style="color:#666; font-size:0.9rem; margin-top:4px;">👤 Cadastrado por: ${r.usuarioEmail}</p>
                     </div>
                 `;
             });
