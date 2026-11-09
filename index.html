@@ -29,6 +29,7 @@
         .btn-sair:hover { background: #374151; }
         
         .erro { color: #dc2626; margin-top: 12px; display: none; text-align: center; font-weight: bold; }
+        .aviso-data { color: #d97706; text-align: center; margin: 10px 0; font-weight: bold; display: none; }
         
         .cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap; gap: 10px; }
         .usuario { color: #333; }
@@ -39,7 +40,7 @@
         .aba.ativa { background: #b91c1c; color: white; }
         .aba:hover { background: #d1d5db; }
         
-        /* === CALENDÁRIO VISÍVEL NA TELA === */
+        /* CALENDÁRIO */
         .container-calendario { 
             background: white; 
             padding: 25px; 
@@ -91,6 +92,7 @@
         .dia:hover { background: #fef2f2; color: #b91c1c; }
         .dia.vazio { cursor: default; background: transparent; }
         .dia.passado { color: #ccc; cursor: not-allowed; }
+        .dia.ocupado { background: #fecaca; color: #b91c1c; font-weight: bold; }
         .dia.selecionado { 
             background: #b91c1c; 
             color: white; 
@@ -106,7 +108,7 @@
         }
         .botao-confirmar { width: 100%; margin-top: 15px; padding: 14px; font-size: 1rem; }
         
-        /* === TELA DE DADOS === */
+        /* FORMULÁRIO */
         .container-dados {
             display: none;
             background: white;
@@ -123,6 +125,8 @@
             padding: 10px;
             font-size: 0.9rem;
         }
+        .voltar:hover { background: #4b5563; }
+        
         .destaque-data {
             background: #fef2f2;
             color: #b91c1c;
@@ -182,12 +186,13 @@
             <button class="aba" id="abaTodas" style="display:none;" onclick="mostrarAba('todas')">📊 Todas as Reservas</button>
         </div>
 
-        <!-- ABA: NOVA RESERVA — CALENDÁRIO VISÍVEL -->
+        <!-- ABA: NOVA RESERVA — CALENDÁRIO -->
         <div id="painelCadastro">
             
-            <!-- PASSO 1 — CALENDÁRIO ABERTO NA TELA -->
+            <!-- PASSO 1 — CALENDÁRIO VISÍVEL -->
             <div id="blocoCalendario" class="container-calendario">
                 <p class="titulo-calendario">Escolha a data da reserva</p>
+                <p class="aviso-data" id="avisoDataOcupada">⚠️ Esta data já tem reserva!</p>
                 
                 <!-- Navegação com setas -->
                 <div class="navegacao-mes">
@@ -217,7 +222,7 @@
                 </button>
             </div>
 
-            <!-- PASSO 2 — FORMULÁRIO DE DADOS -->
+            <!-- PASSO 2 — FORMULÁRIO -->
             <div id="blocoDados" class="container-dados">
                 <button class="voltar" onclick="voltarParaCalendario()">← Escolher outra data</button>
                 
@@ -239,9 +244,9 @@
             <div id="listaMinhas"></div>
         </div>
 
-        <!-- ABA: TODAS AS RESERVAS -->
+        <!-- ABA: TODAS AS RESERVAS (só admin) -->
         <div id="painelTodas" style="display:none;" class="lista-reservas">
-            <h3>Todas as Reservas</h3>
+            <h3>Todas as Reservas do Sistema</h3>
             <div id="listaTodas"></div>
         </div>
     </div>
@@ -270,6 +275,22 @@ let dataAtual = new Date();
 let dataSelecionada = null;
 const hoje = new Date();
 hoje.setHours(0, 0, 0, 0);
+
+// Armazena todas as datas já reservadas
+let datasReservadas = {};
+
+// ===== CARREGAR TODAS AS DATAS RESERVADAS =====
+function carregarDatasReservadas() {
+    datasReservadas = {};
+    db.ref('reservas').once('value').then((snapshot) => {
+        snapshot.forEach((filho) => {
+            const r = filho.val();
+            const chave = `${r.data}_${r.hora}`;
+            datasReservadas[chave] = true;
+        });
+        if (document.getElementById("gradeDias")) renderizarCalendario();
+    });
+}
 
 // ===== RENDERIZAR CALENDÁRIO =====
 function renderizarCalendario() {
@@ -300,6 +321,11 @@ function renderizarCalendario() {
     for (let dia = 1; dia <= ultimoDia; dia++) {
         const dataDia = new Date(ano, mes, dia);
         const ehPassado = dataDia < hoje;
+        
+        // Verifica se tem alguma reserva nesta data
+        const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        const temReserva = Object.keys(datasReservadas).some(k => k.startsWith(dataStr));
+        
         const ehSelecionada = dataSelecionada && 
             dataSelecionada.getDate() === dia && 
             dataSelecionada.getMonth() === mes && 
@@ -307,6 +333,7 @@ function renderizarCalendario() {
         
         let classes = "dia";
         if (ehPassado) classes += " passado";
+        else if (temReserva) classes += " ocupado";
         if (ehSelecionada) classes += " selecionado";
         
         const onclick = ehPassado ? "" : `onclick="escolherDia(${ano}, ${mes}, ${dia})"`;
@@ -324,6 +351,18 @@ function mudarMes(diferenca) {
 // ===== ESCOLHER UM DIA =====
 function escolherDia(ano, mes, dia) {
     dataSelecionada = new Date(ano, mes, dia);
+    
+    const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    const jaTemReserva = Object.keys(datasReservadas).some(k => k.startsWith(dataStr));
+    
+    // Mostra aviso se já tem reserva
+    const aviso = document.getElementById("avisoDataOcupada");
+    if (jaTemReserva) {
+        aviso.style.display = "block";
+    } else {
+        aviso.style.display = "none";
+    }
+    
     renderizarCalendario();
     
     // Mostra data escolhida e botão
@@ -340,8 +379,16 @@ function irParaDados() {
     const dia = String(dataSelecionada.getDate()).padStart(2, '0');
     const mes = String(dataSelecionada.getMonth() + 1).padStart(2, '0');
     const ano = dataSelecionada.getFullYear();
-    document.getElementById("dataConfirmada").textContent = `${dia}/${mes}/${ano}`;
+    const dataStr = `${ano}-${String(mes).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
     
+    // Verifica novamente antes de avançar
+    const jaTemReserva = Object.keys(datasReservadas).some(k => k.startsWith(dataStr));
+    if (jaTemReserva) {
+        alert("⚠️ Esta data já tem reserva cadastrada! Escolha outra data.");
+        return;
+    }
+    
+    document.getElementById("dataConfirmada").textContent = `${dia}/${mes}/${ano}`;
     document.getElementById("blocoCalendario").style.display = "none";
     document.getElementById("blocoDados").style.display = "block";
 }
@@ -351,12 +398,13 @@ function voltarParaCalendario() {
     document.getElementById("blocoDados").style.display = "none";
     document.getElementById("blocoCalendario").style.display = "block";
     
-    // Limpa campos
+    // Limpa os campos
     document.getElementById("nomeReserva").value = "";
     document.getElementById("responsavel").value = "";
     document.getElementById("qtdPessoas").value = "";
     document.getElementById("horaReserva").value = "";
     document.getElementById("mensagemSucesso").style.display = "none";
+    document.getElementById("avisoDataOcupada").style.display = "none";
 }
 
 // ===== LOGIN =====
@@ -399,10 +447,10 @@ auth.onAuthStateChanged((usuario) => {
             document.getElementById("abaTodas").style.display = "block";
         }
         
-        // Inicializa calendário
+        // Carrega datas ocupadas e inicializa calendário
+        carregarDatasReservadas();
         dataAtual = new Date();
         dataSelecionada = null;
-        renderizarCalendario();
         
         carregarMinhas();
         if (ehAdmin) carregarTodas();
@@ -443,36 +491,73 @@ function mostrarAba(nome) {
     }
 }
 
-// ===== SALVAR RESERVA =====
+// ===== SALVAR RESERVA — SOMENTE APÓS PREENCHER TUDO =====
 function salvarReserva() {
     if (!dataSelecionada) {
         alert("Escolha uma data primeiro!");
         return;
     }
     
-    const data = dataSelecionada.toISOString().split('T')[0];
+    // Pegar valores dos campos
     const nome = document.getElementById('nomeReserva').value.trim();
     const responsavel = document.getElementById('responsavel').value.trim();
     const quantidade = document.getElementById('qtdPessoas').value;
     const hora = document.getElementById('horaReserva').value;
     
-    if (!nome || !responsavel || !quantidade || !hora) {
-        alert("⚠️ Preencha TODOS os campos!");
+    // ⚠️ VERIFICA SE TUDO FOI PREENCHIDO ANTES DE SALVAR
+    if (!nome) {
+        alert("⚠️ Digite o nome do passeio ou cliente!");
+        document.getElementById('nomeReserva').focus();
+        return;
+    }
+    if (!responsavel) {
+        alert("⚠️ Digite o nome do responsável + telefone!");
+        document.getElementById('responsavel').focus();
+        return;
+    }
+    if (!quantidade || quantidade < 1) {
+        alert("⚠️ Digite a quantidade de pessoas!");
+        document.getElementById('qtdPessoas').focus();
+        return;
+    }
+    if (!hora) {
+        alert("⚠️ Escolha o horário da reserva!");
+        document.getElementById('horaReserva').focus();
         return;
     }
     
+    // Formatar data
+    const ano = dataSelecionada.getFullYear();
+    const mes = String(dataSelecionada.getMonth() + 1).padStart(2, '0');
+    const dia = String(dataSelecionada.getDate()).padStart(2, '0');
+    const dataFormatada = `${ano}-${mes}-${dia}`;
+    
+    // BLOQUEIO: Verificar se já existe reserva na MESMA DATA E HORA
+    const chaveVerificar = `${dataFormatada}_${hora}`;
+    if (datasReservadas[chaveVerificar]) {
+        alert("⚠️ Já existe uma reserva nesta data e horário! Escolha outro horário.");
+        return;
+    }
+    
+    // Salvar no Firebase
     db.ref('reservas').push({
-        data,
-        nome,
-        responsavel,
-        quantidade,
-        hora,
+        data: dataFormatada,
+        nome: nome,
+        responsavel: responsavel,
+        quantidade: quantidade,
+        hora: hora,
         usuarioEmail: usuarioAtual.email,
         usuarioUid: usuarioAtual.uid,
         dataCadastro: new Date().toISOString()
     })
     .then(() => {
+        // Adicionar à lista local de datas ocupadas
+        datasReservadas[chaveVerificar] = true;
+        
+        // Mostrar mensagem de sucesso
         document.getElementById('mensagemSucesso').style.display = 'block';
+        
+        // Limpar e voltar após 3 segundos
         setTimeout(() => {
             document.getElementById('mensagemSucesso').style.display = 'none';
             voltarParaCalendario();
@@ -483,18 +568,18 @@ function salvarReserva() {
         }, 3000);
     })
     .catch((erro) => {
-        alert("❌ Erro: " + erro.message);
+        alert("❌ Erro ao salvar: " + erro.message);
     });
 }
 
-// ===== CARREGAR MINHAS RESERVAS =====
+// ===== CARREGAR SOMENTE AS RESERVAS DO USUÁRIO LOGADO =====
 function carregarMinhas() {
     const lista = document.getElementById('listaMinhas');
     lista.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
     
     db.ref('reservas')
         .orderByChild('usuarioUid')
-        .equalTo(usuarioAtual.uid)
+        .equalTo(usuarioAtual.uid) // ← SÓ TRAZ AS DESTE USUÁRIO
         .once('value')
         .then((snapshot) => {
             lista.innerHTML = '';
@@ -508,8 +593,10 @@ function carregarMinhas() {
                 reservas.push({ id: filho.key, ...filho.val() });
             });
             
+            // Ordenar da mais nova para a mais antiga
             reservas.sort((a, b) => b.data.localeCompare(a.data));
             
+            // Exibir
             reservas.forEach((r) => {
                 const [ano, mes, dia] = r.data.split('-');
                 lista.innerHTML += `
@@ -521,10 +608,13 @@ function carregarMinhas() {
                     </div>
                 `;
             });
+        })
+        .catch((erro) => {
+            lista.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar reservas.</p>';
         });
 }
 
-// ===== CARREGAR TODAS AS RESERVAS =====
+// ===== CARREGAR TODAS AS RESERVAS — SÓ ADMIN =====
 function carregarTodas() {
     const lista = document.getElementById('listaTodas');
     lista.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
