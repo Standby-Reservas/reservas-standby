@@ -24,12 +24,15 @@
         
         button { background: #b91c1c; color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background: #991b1b; }
+        button.excluir { background: #ef4444; padding: 8px 12px; font-size: 0.9rem; width: auto; margin: 10px 0 0 0; }
+        button.excluir:hover { background: #dc2626; }
         
         .btn-sair { background: #4b5563; margin: 10px 0 25px; }
         .btn-sair:hover { background: #374151; }
         
         .erro { color: #dc2626; margin-top: 12px; display: none; text-align: center; font-weight: bold; }
         .aviso-data { color: #d97706; text-align: center; margin: 10px 0; font-weight: bold; display: none; }
+        .sucesso-msg { color: #16a34a; text-align: center; margin: 10px 0; font-weight: bold; display: none; }
         
         .cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e5e7eb; flex-wrap: wrap; gap: 10px; }
         .usuario { color: #333; }
@@ -174,7 +177,7 @@
                 <br>
                 <small id="emailUsuario"></small>
             </div>
-            <button class="btn-sair" onclick="sair()">Sair</button>
+            <button class="btn-sair" onclick="sairDoSistema()">Sair do Sistema</button>
         </div>
 
         <!-- ABAS -->
@@ -236,7 +239,7 @@
             </div>
         </div>
 
-        <!-- ABA: MINHAS RESERVAS — SÓ AS SUAS -->
+        <!-- ABA: MINHAS RESERVAS — SÓ AS DO USUÁRIO LOGADO -->
         <div id="painelMinhas" style="display:none;" class="lista-reservas">
             <h3>Minhas Reservas</h3>
             <div id="listaMinhas"></div>
@@ -274,16 +277,16 @@ let dataSelecionada = null;
 const hoje = new Date();
 hoje.setHours(0, 0, 0, 0);
 
-// Armazena as datas que JÁ ESTÃO RESERVADAS → dia inteiro bloqueado
+// Armazena datas ocupadas — dia inteiro bloqueado
 let datasOcupadas = {};
 
-// ===== CARREGAR TODAS AS DATAS JÁ RESERVADAS =====
+// ===== CARREGAR Datas OCUPADAS =====
 function carregarDatasOcupadas() {
     datasOcupadas = {};
     db.ref('reservas').once('value').then((snapshot) => {
         snapshot.forEach((filho) => {
             const reserva = filho.val();
-            datasOcupadas[reserva.data] = true; // Marca o dia inteiro como ocupado
+            datasOcupadas[reserva.data] = true;
         });
         if (document.getElementById("gradeDias")) renderizarCalendario();
     });
@@ -294,32 +297,25 @@ function renderizarCalendario() {
     const ano = dataAtual.getFullYear();
     const mes = dataAtual.getMonth();
     
-    // Nome do mês
     const nomesMeses = [
         "janeiro", "fevereiro", "março", "abril", "maio", "junho",
         "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
     ];
     document.getElementById("nomeMesAno").textContent = `${nomesMeses[mes]} de ${ano}`;
     
-    // Primeiro dia do mês (0=domingo)
     const primeiroDia = new Date(ano, mes, 1).getDay();
-    // Último dia do mês
     const ultimoDia = new Date(ano, mes + 1, 0).getDate();
     
     const grade = document.getElementById("gradeDias");
     grade.innerHTML = "";
     
-    // Dias vazios antes do primeiro dia
     for (let i = 0; i < primeiroDia; i++) {
         grade.innerHTML += `<div class="dia vazio"></div>`;
     }
     
-    // Dias do mês
     for (let dia = 1; dia <= ultimoDia; dia++) {
         const dataDia = new Date(ano, mes, dia);
         const ehPassado = dataDia < hoje;
-        
-        // Formatar como YYYY-MM-DD
         const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
         const ocupado = datasOcupadas[dataStr];
         
@@ -333,29 +329,23 @@ function renderizarCalendario() {
         else if (ocupado) classes += " ocupado";
         if (ehSelecionada) classes += " selecionado";
         
-        // Não deixa clicar em dias passados nem ocupados
         const onclick = (!ehPassado && !ocupado) ? `onclick="escolherDia(${ano}, ${mes}, ${dia})"` : "";
-        
         grade.innerHTML += `<div class="${classes}" ${onclick}>${dia}</div>`;
     }
 }
 
-// ===== MUDAR MÊS COM AS SETAS =====
+// ===== NAVEGAR MÊS =====
 function mudarMes(diferenca) {
     dataAtual.setMonth(dataAtual.getMonth() + diferenca);
     renderizarCalendario();
 }
 
-// ===== ESCOLHER UM DIA =====
+// ===== ESCOLHER DIA =====
 function escolherDia(ano, mes, dia) {
     dataSelecionada = new Date(ano, mes, dia);
-    
-    // Esconde aviso se aparecer
     document.getElementById("avisoDataOcupada").style.display = "none";
-    
     renderizarCalendario();
     
-    // Mostra data escolhida e botão
     const diaF = String(dia).padStart(2, '0');
     const mesF = String(mes + 1).padStart(2, '0');
     document.getElementById("dataEscolhidaTexto").textContent = `${diaF}/${mesF}/${ano}`;
@@ -371,9 +361,8 @@ function irParaDados() {
     const ano = dataSelecionada.getFullYear();
     const dataStr = `${ano}-${mes}-${dia}`;
     
-    // Verificação de segurança — bloqueia se já tem reserva
     if (datasOcupadas[dataStr]) {
-        alert("⚠️ Esta data JÁ TEM RESERVA! Escolha outra data.");
+        alert("⚠️ Esta data JÁ TEM RESERVA! Escolha outra.");
         return;
     }
     
@@ -382,12 +371,11 @@ function irParaDados() {
     document.getElementById("blocoDados").style.display = "block";
 }
 
-// ===== VOLTAR PARA CALENDÁRIO =====
+// ===== VOLTAR AO CALENDÁRIO =====
 function voltarParaCalendario() {
     document.getElementById("blocoDados").style.display = "none";
     document.getElementById("blocoCalendario").style.display = "block";
     
-    // Limpa os campos
     document.getElementById("nomeReserva").value = "";
     document.getElementById("responsavel").value = "";
     document.getElementById("qtdPessoas").value = "";
@@ -419,27 +407,25 @@ function fazerLogin() {
     });
 }
 
-// ===== VERIFICAR SE ESTÁ LOGADO =====
+// ===== VERIFICAR LOGADO =====
 auth.onAuthStateChanged((usuario) => {
     if (usuario) {
         usuarioAtual = usuario;
-        ehAdmin = (usuario.email === emailAdmin); // SÓ standby.reservas@gmail.com é admin
+        ehAdmin = (usuario.email === emailAdmin);
         
         document.getElementById("telaLogin").style.display = "none";
         document.getElementById("conteudo").style.display = "block";
         document.getElementById("nomeUsuario").textContent = usuario.displayName || usuario.email.split("@")[0];
         document.getElementById("emailUsuario").textContent = usuario.email;
         
-        // Mostra aba "Todas as Reservas" SOMENTE para a administradora
         if (ehAdmin) {
             document.getElementById("tagAdmin").style.display = "inline-block";
             document.getElementById("abaTodas").style.display = "block";
         } else {
             document.getElementById("tagAdmin").style.display = "none";
-            document.getElementById("abaTodas").style.display = "none"; // Outros NÃO veem
+            document.getElementById("abaTodas").style.display = "none";
         }
         
-        // Carrega tudo
         carregarDatasOcupadas();
         dataAtual = new Date();
         dataSelecionada = null;
@@ -454,7 +440,7 @@ auth.onAuthStateChanged((usuario) => {
 });
 
 // ===== SAIR =====
-function sair() {
+function sairDoSistema() {
     auth.signOut();
 }
 // ===== TROCAR ABA =====
@@ -483,54 +469,33 @@ function mostrarAba(nome) {
     }
 }
 
-// ===== SALVAR RESERVA — VALIDA TUDO =====
+// ===== SALVAR RESERVA =====
 function salvarReserva() {
     if (!dataSelecionada) {
         alert("Escolha uma data primeiro!");
         return;
     }
     
-    // Pegar valores
     const nome = document.getElementById('nomeReserva').value.trim();
     const responsavel = document.getElementById('responsavel').value.trim();
     const quantidade = document.getElementById('qtdPessoas').value;
     const hora = document.getElementById('horaReserva').value;
     
-    // VALIDAÇÃO — não salva se estiver vazio
-    if (!nome) {
-        alert("⚠️ Digite o nome do passeio ou cliente!");
-        document.getElementById('nomeReserva').focus();
-        return;
-    }
-    if (!responsavel) {
-        alert("⚠️ Digite o nome do responsável + telefone!");
-        document.getElementById('responsavel').focus();
-        return;
-    }
-    if (!quantidade || quantidade < 1) {
-        alert("⚠️ Digite a quantidade de pessoas!");
-        document.getElementById('qtdPessoas').focus();
-        return;
-    }
-    if (!hora) {
-        alert("⚠️ Escolha o horário da reserva!");
-        document.getElementById('horaReserva').focus();
-        return;
-    }
+    if (!nome) { alert("⚠️ Digite o nome do passeio/cliente!"); document.getElementById('nomeReserva').focus(); return; }
+    if (!responsavel) { alert("⚠️ Digite responsável + telefone!"); document.getElementById('responsavel').focus(); return; }
+    if (!quantidade || quantidade < 1) { alert("⚠️ Digite a quantidade de pessoas!"); document.getElementById('qtdPessoas').focus(); return; }
+    if (!hora) { alert("⚠️ Escolha o horário!"); document.getElementById('horaReserva').focus(); return; }
     
-    // Formatar data
     const ano = dataSelecionada.getFullYear();
     const mes = String(dataSelecionada.getMonth() + 1).padStart(2, '0');
     const dia = String(dataSelecionada.getDate()).padStart(2, '0');
     const dataFormatada = `${ano}-${mes}-${dia}`;
     
-    // BLOQUEIO — dia inteiro!
     if (datasOcupadas[dataFormatada]) {
-        alert("⚠️ Esta data JÁ TEM RESERVA! Escolha outra data.");
+        alert("⚠️ Esta data JÁ TEM RESERVA! Escolha outra.");
         return;
     }
     
-    // Salvar no Firebase
     db.ref('reservas').push({
         data: dataFormatada,
         nome: nome,
@@ -542,13 +507,9 @@ function salvarReserva() {
         dataCadastro: new Date().toISOString()
     })
     .then(() => {
-        // Marcar como ocupada localmente
         datasOcupadas[dataFormatada] = true;
-        
-        // Mensagem de sucesso
         document.getElementById('mensagemSucesso').style.display = 'block';
         
-        // Limpar e voltar após 3 segundos
         setTimeout(() => {
             document.getElementById('mensagemSucesso').style.display = 'none';
             voltarParaCalendario();
@@ -558,19 +519,39 @@ function salvarReserva() {
             renderizarCalendario();
         }, 3000);
     })
+    .catch((erro) => alert("❌ Erro ao salvar: " + erro.message));
+}
+
+// ===== EXCLUIR RESERVA =====
+function excluirReserva(id, dataReserva) {
+    if (!confirm("⚠️ Tem certeza que deseja cancelar esta reserva?\nEsta ação não pode ser desfeita!")) {
+        return;
+    }
+    
+    db.ref('reservas/' + id).remove()
+    .then(() => {
+        // Remove da lista local de datas ocupadas
+        delete datasOcupadas[dataReserva];
+        alert("✅ Reserva cancelada com sucesso!");
+        
+        // Recarrega as listas
+        carregarMinhas();
+        if (ehAdmin) carregarTodas();
+        renderizarCalendario(); // Libera a data no calendário
+    })
     .catch((erro) => {
-        alert("❌ Erro ao salvar: " + erro.message);
+        alert("❌ Erro ao cancelar: " + erro.message);
     });
 }
 
-// ===== MINHAS RESERVAS — SÓ AS DO USUÁRIO LOGADO =====
+// ===== MINHAS RESERVAS — SÓ AS DO USUÁRIO =====
 function carregarMinhas() {
     const lista = document.getElementById('listaMinhas');
     lista.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
     
     db.ref('reservas')
         .orderByChild('usuarioUid')
-        .equalTo(usuarioAtual.uid) // ← FILTRA APENAS AS SUAS
+        .equalTo(usuarioAtual.uid) // ← SÓ VÊ AS SUAS
         .once('value')
         .then((snapshot) => {
             lista.innerHTML = '';
@@ -584,10 +565,8 @@ function carregarMinhas() {
                 reservas.push({ id: filho.key, ...filho.val() });
             });
             
-            // Ordenar da mais nova para a mais antiga
             reservas.sort((a, b) => b.data.localeCompare(a.data));
             
-            // Exibir — SEM undefined!
             reservas.forEach((r) => {
                 const [ano, mes, dia] = r.data.split('-');
                 lista.innerHTML += `
@@ -596,15 +575,16 @@ function carregarMinhas() {
                         <p><strong>Cliente/Passeio:</strong> ${r.nome}</p>
                         <p><strong>Responsável:</strong> ${r.responsavel}</p>
                         <p><strong>Pessoas:</strong> ${r.quantidade}</p>
+                        <button class="excluir" onclick="excluirReserva('${r.id}', '${r.data}')">🗑️ Cancelar Reserva</button>
                     </div>
                 `;
             });
         });
 }
 
-// ===== TODAS AS RESERVAS — SÓ ADMIN VÊ =====
+// ===== TODAS AS RESERVAS — SÓ ADMIN =====
 function carregarTodas() {
-    if (!ehAdmin) return; // Segurança extra
+    if (!ehAdmin) return;
     
     const lista = document.getElementById('listaTodas');
     lista.innerHTML = '<p style="text-align:center; color:#888;">Carregando...</p>';
@@ -616,7 +596,7 @@ function carregarTodas() {
         .then((snapshot) => {
             lista.innerHTML = '';
             if (!snapshot.exists()) {
-                lista.innerHTML = '<p class="vazio">Nenhuma reserva cadastrada ainda.</p>';
+                lista.innerHTML = '<p class="vazio">Nenhuma reserva cadastrada.</p>';
                 return;
             }
             
@@ -636,6 +616,7 @@ function carregarTodas() {
                         <p><strong>Responsável:</strong> ${r.responsavel}</p>
                         <p><strong>Pessoas:</strong> ${r.quantidade}</p>
                         <p style="color:#666; font-size:0.9rem; margin-top:4px;">👤 Cadastrado por: ${r.usuarioEmail}</p>
+                        <button class="excluir" onclick="excluirReserva('${r.id}', '${r.data}')">🗑️ Cancelar Reserva</button>
                     </div>
                 `;
             });
